@@ -7,7 +7,7 @@ services:
     ports:
       - "8545:8545"
     volumes:
-      - volumes/ethereum-data:/root/.ethereum
+      - ethereum-data:/root/.ethereum
     container_name: ethereum_light_node
     networks:
       - mynetwork
@@ -15,7 +15,7 @@ services:
   python-app:
     build: ./scanner
     volumes:
-      - volumes/scanner-data:/app
+      - scanner-data:/app
     environment:
       ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY}
       UNISWAPV2ROUTER_CONTRACT_ADDRESS: ${UNISWAPV2ROUTER_CONTRACT_ADDRESS}
@@ -29,3 +29,11 @@ services:
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  ethereum-data:
+    driver: local
+    name: volumes/ethereum-data
+  scanner-data:
+    driver: local
+    name: volumes/scanner-data
