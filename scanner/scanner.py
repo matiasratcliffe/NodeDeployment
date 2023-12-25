@@ -89,8 +89,8 @@ def initializeFile(file_name, initial_line):
             printDev(f"File '{file_name}' created.")
 
 if __name__ == "__main__":
-    LOG_TO_CONSOLE = True
-    LOG_TO_FILE = False
+    LOG_TO_CONSOLE = False
+    LOG_TO_FILE = True
 
     initializeFile("capturedTransactionHashes.txt", "time,function,tx_hash,tokenIn,tokenOut,execution_price,eth_amount,gas,gas_price,reserves_after")
     initializeFile("pendingTransactionHashes.txt", "time,tx_hash,tx_to,captured_timestamp,grace_period")
