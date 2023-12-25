@@ -96,7 +96,7 @@ if __name__ == "__main__":
     initializeFile("pendingTransactionHashes.txt", "time,tx_hash,tx_to,captured_timestamp,grace_period")
 
     printDev("Initiating Web3 client...")
-    rpc_url = "https://ethereum.publicnode.com"
+    rpc_url = "http://ethereum-node:8545"
     w3 = Web3(Web3.HTTPProvider(rpc_url))
 
     printDev("Initiating etherscan client...")
