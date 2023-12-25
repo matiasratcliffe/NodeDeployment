@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  ethereum-node:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8545:8545"
+    container_name: ethereum_light_node
