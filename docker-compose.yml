@@ -1,39 +1,71 @@
 version: '3.8'
 
 services:
-  ethereum-node:
-    image: ethereum/client-go:latest
-    command: geth --syncmode light --rpc --rpcaddr 0.0.0.0 --rpcport 8545 --rpcapi eth,net,web3
-    ports:
-      - "8545:8545"
+  genesis:
+    image: alpine:latest
+    restart: on-failure
+    entrypoint: ["sh", "-c"]
+    command:
+      - "if [ ! -f genesis.ssz ]; then wget 'https://github.com/eth-clients/eth2-networks/raw/master/shared/prater/genesis.ssz'; fi"
+    working_dir: /genesis
     volumes:
-      - ethereum-data:/root/.ethereum
+      - ./volumes/ethereum-data/prysm:/genesis
+  prysm:
+    image: gcr.io/prysmaticlabs/prysm/beacon-chain:v4.1.1
+    restart: unless-stopped
+    stop_grace_period: 2m
+    volumes:
+      - ./volumes/ethereum-data/prysm:/data
+      - ./volumes/ethereum-data/geth:/geth
+    depends_on:
+      geth:
+        condition: service_healthy
+      genesis:
+        condition: service_completed_successfully
+    command:
+      - --accept-terms-of-use
+      - --goerli
+      - --datadir=/data
+      - --execution-endpoint=/geth/geth.ipc
+      - --genesis-state=/data/genesis.ssz
+      - --checkpoint-sync-url=https://goerli.beaconstate.info
+      - --genesis-beacon-api-url=https://goerli.beaconstate.info
+  geth:
+    image: ethereum/client-go:latest
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "geth attach --datadir /data --exec eth.blockNumber"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command:
+      - --syncmode=snap
+      - --datadir=/data
+      - --goerli
+      - --authrpc.addr=prysm
+      - --authrpc.port=8551
+      #- --authrpc.vhosts=localhost
+      - --http
+      - --http.api=eth,net,web3
+      - --http.addr=0.0.0.0
+    volumes:
+      - ./volumes/ethereum-data/geth:/data
     container_name: ethereum_light_node
-    networks:
-      - mynetwork
-
+  tcpdump:
+    image: nicolaka/netshoot
+    command: tcpdump -i eth0 -w /data/captures.pcap
+    network_mode: service:geth
+    volumes:
+      - ./volumes/netshoot-data:/data
   python-app:
     build: ./scanner
+    restart: on-failure
     volumes:
-      - scanner-data:/app
+      - ./volumes/scanner-data:/app/data
     environment:
       ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY}
       UNISWAPV2ROUTER_CONTRACT_ADDRESS: ${UNISWAPV2ROUTER_CONTRACT_ADDRESS}
       ADDRESS_TO_TRACK: ${ADDRESS_TO_TRACK}
     container_name: python_app_container
-    networks:
-      - mynetwork
     depends_on:
-      - ethereum-node
-
-networks:
-  mynetwork:
-    driver: bridge
-
-volumes:
-  ethereum-data:
-    driver: local
-    name: volumes/ethereum-data
-  scanner-data:
-    driver: local
-    name: volumes/scanner-data
+      - geth

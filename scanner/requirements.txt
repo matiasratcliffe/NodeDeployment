@@ -1,2 +1,2 @@
-etherscan
+etherscan-python
 web3

@@ -1,3 +1,4 @@
+import time
 import datetime
 import etherscan
 from web3 import Web3
@@ -6,7 +7,7 @@ from os import getenv
 
 def captureBlockTransactions():
     global capturedLastBlockNumber, contractAddress
-    with open("capturedTransactionHashes.txt", "a") as captured:
+    with open("./data/capturedTransactionHashes.txt", "a") as captured:
         if (capturedLastBlockNumber != w3.eth.block_number):
             capturedLastBlockNumber = w3.eth.block_number  # This is for buffering purposes
             printDev("Capturing last block of transactions...", end="")
@@ -74,7 +75,7 @@ def printDev(message, newLine=True, end="\n"):
     global LOG_TO_FILE, LOG_TO_CONSOLE
     prefix = f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')}] " if newLine else ""
     if LOG_TO_FILE:
-        with open("logs.txt", "a") as f:
+        with open("./data/logs.txt", "a") as f:
             f.write(f"{prefix}{message}\n")
     if LOG_TO_CONSOLE:
         print(f"{prefix}{message}", end=end)
@@ -89,11 +90,10 @@ def initializeFile(file_name, initial_line):
             printDev(f"File '{file_name}' created.")
 
 if __name__ == "__main__":
-    LOG_TO_CONSOLE = False
+    LOG_TO_CONSOLE = True
     LOG_TO_FILE = True
 
-    initializeFile("capturedTransactionHashes.txt", "time,function,tx_hash,tokenIn,tokenOut,execution_price,eth_amount,gas,gas_price,reserves_after")
-    initializeFile("pendingTransactionHashes.txt", "time,tx_hash,tx_to,captured_timestamp,grace_period")
+    initializeFile("./data/capturedTransactionHashes.txt", "time,function,tx_hash,tokenIn,tokenOut,execution_price,eth_amount,gas,gas_price,reserves_after")
 
     printDev("Initiating Web3 client...")
     rpc_url = "http://ethereum-node:8545"
