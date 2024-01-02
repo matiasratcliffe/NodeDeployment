@@ -17,9 +17,12 @@ services:
     volumes:
       - ./volumes/ethereum-data/prysm:/data
       - ./volumes/ethereum-data/geth:/geth
+    ports:
+      - "4000:4000"  # Replace with the ports needed by Prysm
+      - "13000:13000"  # Replace with the ports needed by Prysm
     depends_on:
-      geth:
-        condition: service_healthy
+      #geth:
+      #  condition: service_healthy
       genesis:
         condition: service_completed_successfully
     command:
@@ -32,7 +35,7 @@ services:
       - --genesis-beacon-api-url=https://goerli.beaconstate.info
   geth:
     image: ethereum/client-go:latest
-    restart: unless-stopped
+    #restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "geth attach --datadir /data --exec eth.blockNumber"]
       interval: 10s
@@ -50,11 +53,16 @@ services:
       - --http.addr=0.0.0.0
     volumes:
       - ./volumes/ethereum-data/geth:/data
-    container_name: ethereum_light_node
+    ports:
+      - 30303:30303
+      - 30303:30303/udp
+      - 8545:8545
+      - 8546:8546
+    container_name: geth
   tcpdump:
     image: nicolaka/netshoot
     command: tcpdump -i eth0 -w /data/captures.pcap
-    network_mode: service:geth
+    network_mode: service:prysm
     volumes:
       - ./volumes/netshoot-data:/data
   python-app:
@@ -66,6 +74,10 @@ services:
       ETHERSCAN_API_KEY: ${ETHERSCAN_API_KEY}
       UNISWAPV2ROUTER_CONTRACT_ADDRESS: ${UNISWAPV2ROUTER_CONTRACT_ADDRESS}
       ADDRESS_TO_TRACK: ${ADDRESS_TO_TRACK}
-    container_name: python_app_container
+    container_name: scanner
     depends_on:
       - geth
+
+
+0800 666 4600
+https://github.com/islishude/geth-docker.git (push)
