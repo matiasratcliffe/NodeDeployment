@@ -77,7 +77,3 @@ services:
     container_name: scanner
     depends_on:
       - geth
-
-
-0800 666 4600
-https://github.com/islishude/geth-docker.git (push)
